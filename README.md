@@ -103,7 +103,7 @@ actions:
 mode: single
 ```
 
-A sample dashbaord may look like
+A sample dashboard may look like
 
 ![kittec](kittec2mqtt.png)
 
