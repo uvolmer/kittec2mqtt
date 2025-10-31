@@ -1,0 +1,7 @@
+mqtt_server: "mqtt.example.com"
+mqtt_port: 8883
+mqtt_user: "mqtt-user"
+mqtt_pass: "mqtt-password"
+mqtt_topic: "kittec/85"
+superwize_username: "username-on-superwize-page"
+superwize_password: "password-on-superwize-page"

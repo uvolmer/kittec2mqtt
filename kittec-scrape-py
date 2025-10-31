@@ -1,0 +1,130 @@
+import requests
+import json
+import yaml
+import paho.mqtt.publish as publish
+import os
+import sys
+
+config_location = sys.path[0] + "/config.yml"
+
+with open( config_location) as configfile:
+    config = yaml.full_load( configfile)
+
+
+var = {}
+
+tls = {'tls_version': 2}
+
+def mqtt_pub( topic, payload):
+    """
+    publish a single message using MQTT
+    """
+    auth = {"username":config['mqtt_user'], "password":config['mqtt_pass']}
+
+    publish.single( topic=topic, payload=payload, qos=1, retain=False, 
+                    hostname=config['mqtt_server'], port=config['mqtt_port'], 
+                    client_id="", keepalive=60, will=None, 
+                    auth = auth,
+                    tls=tls, transport="tcp")
+
+
+"""
+sample output from json api
+
+[{ id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+   "serialNumber": "XXXXXX",
+   "name": "kittec",
+   "usernames": [
+     "xxxxxxx"
+    ],
+    "segmentMode": "RMP_UP",
+    "lastActive": 1761286828000,
+    "sequenceNumber": 40,
+    "pin": XXXX,
+    "value": 73.02048
+    "setpoint": 72.55737,
+    "lpValue": 8.467138,
+    "processStatus": "PS_RUNNING",
+    "processInfo": 0,
+    "progNumber": 2,
+    "segNumber": 1,
+    "remainingSegmentSeconds": 18988,
+    "error": null,
+    "type": "TC75",
+    "temporal": false,
+    "defaultPicture": null,
+    "customPicture": null,
+    "doValue": 2,
+    "diValue": 0,
+    "doUsed": 3,
+    "diUsed": 0,
+    "decoupleRequired": null,
+    "wasCoupled": null,
+    "owner": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "manufacturer": "xxxxxxxf-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "modelId": null, 
+    "metadata": {
+      "comment": ""
+    },
+    "coupledAt": 1761223019250
+  }
+]
+"""
+
+
+LOGIN_URL = "https://www.superwise.eu/login"
+DATA_URL = " https://www.superwise.eu/controller/menu"
+
+login_payload = {
+    "username": config['superwize_username'],
+    "password": config['superwize_password']
+}
+
+# We use a Session object to persist cookies
+with requests.Session() as s:
+    try:
+        # Add a common User-Agent header to look like a real browser
+        s.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36"
+        })
+
+        # 1. Send the POST request to log in
+        print(f"Logging in to {LOGIN_URL}...")
+        r_login = s.post(LOGIN_URL, data=login_payload)
+        
+        print(f"Accessing data page: {DATA_URL}")
+        r_data = s.get(DATA_URL)
+
+        if "SuperWise | Login" in r_data.text:
+            print("\n--- ERROR ---")
+            print("Login failed! We are still on the login page.")
+            print("Please check your USERNAME and PASSWORD in the script.")
+            exit()
+
+        if not r_data.ok:
+            print(f"\n--- ERROR ---")
+            print(f"Failed to get data page. Status code: {r_data.status_code}")
+            exit()
+
+        print("Parsing JSON response...")
+        data_dict = r_data.json() # Converts JSON string to Python dict
+
+        temperature = data_dict[0]['value']
+        prog = data_dict[0]['progNumber']
+        sequence = data_dict[0]['segNumber']
+        remaining_seconds = data_dict[0]['remainingSegmentSeconds']
+
+
+        print ( "t: {:.1f} p: {:d} s: {:d} seconds: {:d}, h: {: .1f}".format( 
+                temperature, prog, sequence, remaining_seconds, remaining_seconds / 3600 ))
+
+        payload = "\"temperature\": {:.1f}, \"programm\": {:d}, \"sequence\": {:d}, \"seconds\": {:d}".format( 
+                temperature, prog, sequence, remaining_seconds)
+        mqtt_pub( config['mqtt_topic'], '{' + payload + '}')
+
+    except requests.exceptions.ConnectionError as e:
+        print(f"\n--- CONNECTION ERROR ---")
+        print(f"Could not connect to the website: {e}")
+    except Exception as e:
+        print(f"\n--- AN UNEXPECTED ERROR OCCURRED ---")
+        print(e)
