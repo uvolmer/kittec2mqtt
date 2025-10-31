@@ -103,4 +103,8 @@ actions:
 mode: single
 ```
 
+A sample dashbaord may look like
+
+![kittec](kittec2mqtt.png)
+
 
