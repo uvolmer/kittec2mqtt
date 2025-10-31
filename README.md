@@ -1,6 +1,6 @@
 # Kittec 2 MQTT
 
-This purpose of this scripts is to scrape the current data of my Kittec xxxx from the superwize.eu website and pass it to my MQTT so I can access it in Homeassistant.
+This purpose of this scripts is to scrape the current data of my Pottery Kiln Kittec xxxx from the superwize.eu website and pass it to my MQTT so I can access it in Homeassistant.
 
 It will currentlyx only **read** the actual data and is **not intended** to modify any setting of the oven/controller.
 
