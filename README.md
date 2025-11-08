@@ -1,3 +1,4 @@
+<meta name="google-site-verification" content="H0HkVuvTSNHwdD2YctlY4Iva-qdqmwd7OJYa-3uH9lo" />
 # Kittec 2 MQTT
 
 This purpose of this scripts is to scrape the current data of my Pottery Kiln Kittec xxxx from the superwize.eu website and pass it to my MQTT so I can access it in Homeassistant.
