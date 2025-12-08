@@ -80,7 +80,7 @@ login_payload = {
     "password": config['superwize_password']
 }
 
-if os.system( 'ping -i .1 -c 3 ' + config['kittec_ip']) != 0:
+if os.system( 'ping -i 1 -c 3 ' + config['kittec_ip']) != 0:
     payload = "\"temperature\": {:.1f}, \"programm\": {:d}, \"sequence\": {:d}, \"seconds\": {:d}".format( 
             -1, -1, -1, -1)
     mqtt_pub( config['mqtt_topic'], '{' + payload + '}')
